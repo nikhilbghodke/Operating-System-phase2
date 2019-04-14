@@ -30,11 +30,12 @@ public class OS {
     private int data_card_skip=0;
     private String input_file;
     private String output_file;
-    private  FileReader input;
+    private FileReader input;
     private BufferedReader fread;
     public  FileWriter output;
     private BufferedWriter fwrite;
     private Random rand;
+    private int tline;
 
     public OS(String file,String output){
         this.input_file=file;
@@ -68,7 +69,6 @@ public class OS {
                     //System.out.println(linel+"chal");
                     //System.out.println(time);
                     pcb=new PCB(linel,time);
-
                     continue;
                 }
                 else if(buffer[0]=='$'&& buffer[1]=='D'&&buffer[2]=='T'&& buffer[3]=='A')
@@ -129,7 +129,6 @@ public class OS {
         while(1<2)
         {
            // System.out.println(IC);
-
             int ic=map(IC);
             System.out.println(IC +" is this" +ic);
             //print_memory();
@@ -137,12 +136,20 @@ public class OS {
             IR[1]=memory[ic][1];
             IR[2]=memory[ic][2];
             IR[3]=memory[ic][3];
+            pcb.TTC++;
+            if(pcb.TTC>pcb.TTL)
+            {
+                System.out.println("Total time exceeded");
+                System.exit(0);
+            }
             System.out.println(new String(IR));
             if(IC==100)
                 break;
             IC++;
             if(IR[0]=='G' && IR[1]=='D')
             {
+                pcb.TTC++;
+
                 String line = new String(IR);
                 int num=Integer.parseInt(line.substring(2));
                 //System.out.println(num +"Sahi hai");;
@@ -153,10 +160,10 @@ public class OS {
                     //System.out.println("\n\n\n\n");
                     masterMode();
                 }
-                print_memory();
+               // print_memory();
                 SI=1;
                 masterMode();
-                print_memory();
+                //print_memory();
             }
             else if(IR[0]=='P'&&IR[1]=='D')
             {
@@ -165,7 +172,8 @@ public class OS {
                 ic=map(num);
                 if(ic==-1)
                 {
-                    System.out.println("Pagr fault due to invalid address");
+                    System.out.println("Invalid Page Fault in PD");
+                    System.exit(0);
                 }
                 SI=2;
                 masterMode();
@@ -178,6 +186,11 @@ public class OS {
                 //System.out.println(line.substring(2));
                 int num=Integer.parseInt(line.substring(2));
                 ic=map(num);
+                if(ic==-1)
+                {
+                    System.out.println("Invalid Page Fault in LR");
+                    System.exit(0);
+                }
                 R[0]=memory[ic][0];
                 R[1]=memory[ic][1];
                 R[2]=memory[ic][2];
@@ -200,6 +213,11 @@ public class OS {
                 String line = new String(IR);
                 int num=Integer.parseInt(line.substring(2));
                 ic=map(num);
+                if(ic==-1)
+                {
+                    System.out.println("Invalid Page Fault in CR");
+                    System.exit(0);
+                }
                 if(memory[ic][0]==R[0]&& memory[ic][1]==R[1]&& memory[ic][2]==R[2]&& memory[ic][3]==R[3])
                 {
                     T=1;
@@ -270,7 +288,13 @@ public class OS {
     }
 
     private void Write() {
+        pcb.TLC++;
+        if(pcb.TLC>pcb.TLL)
+        {
+                System.out.println("Total line limit execeded");
+                System.exit(0);
 
+        }
         String line = new String(IR);
         int num=Integer.parseInt(line.substring(2));
         //num=num*10;
@@ -303,6 +327,16 @@ public class OS {
         num=map(num);
         try {
             line=fread.readLine();
+
+
+            //OUT of data card error here
+            if(line.contains("$END"))
+            {
+                System.out.println("Out of Data Card error");
+                System.exit(0);
+            }
+
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -325,6 +359,7 @@ public class OS {
         TI=0;
         pageTable_used=-1;
         IC=0;
+        tline=0;
         ptr=(int)(Math.random()*30);
     }
     public void print_memory(){
@@ -332,6 +367,7 @@ public class OS {
             System.out.println("memory["+i+"] "+new String(memory[i]));
         }
         System.out.println("Your Ptr is "+ptr);
+        System.out.println(pcb.TTC+" as "+ pcb.TLL);
     }
 
     private int allocate(){

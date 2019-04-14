@@ -1,7 +1,10 @@
 package com.company;
 
 public class PCB {
-    int TTL,TLL,TLC,TTC;
+    public int TTL;
+    public int TLL;
+    public int TLC;
+    public int TTC;
 
     public PCB(int line,int time){
         TLC=0;
