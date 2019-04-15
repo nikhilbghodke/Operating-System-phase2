@@ -2,9 +2,6 @@ package com.company;
 import java.io.*;
 import java.util.Random;
 
-import static java.lang.System.exit;
-import static java.lang.System.setErr;
-
 public class OS {
 
 
@@ -62,6 +59,7 @@ public class OS {
             {
                 buffer=line.toCharArray();
                 if(buffer[0]=='$'&& buffer[1]=='A'&&buffer[2]=='M'&& buffer[3]=='J') {
+                    flag=0;
                     System.out.println("Program card detected");
                     init();
                     int linel=Integer.parseInt(line.substring(8,12));
@@ -81,6 +79,7 @@ public class OS {
                 else if(buffer[0]=='$'&& buffer[1]=='E'&&buffer[2]=='N'&& buffer[3]=='D')
                 {
                     System.out.println("END card detected");
+
                     output.write("\n\n\n");
                     print_memory();
                     continue;
@@ -111,7 +110,7 @@ public class OS {
                         if (i % 4 == 0)
                             a++;
                     }
-                    print_memory();
+                    //print_memory();
 
                 }
 
@@ -125,7 +124,7 @@ public class OS {
     }
     private void execute(){
 
-
+//print_memory();
         while(1<2)
         {
            // System.out.println(IC);
@@ -136,11 +135,54 @@ public class OS {
             IR[1]=memory[ic][1];
             IR[2]=memory[ic][2];
             IR[3]=memory[ic][3];
+            if(IR[0]!='H')
+            try {
+                String line = new String(IR);
+                int num = Integer.parseInt(line.substring(2));
+            }
+            catch(Exception e )
+            {
+                System.out.println("Operand error");
+
+                try {
+                    output.write("Program aborted abnormally");
+                    output.write("\n");
+                    output.write("Operand error\n");
+                    output.write("IC :"+IC+"\t");
+                    output.write("IR :"+ new String(IR)+"\t");
+                    output.write("TTL :"+pcb.TTL+"\t");
+                    output.write("TLL :"+pcb.TLL+"\t");
+                    output.write("TTC :"+pcb.TTC+"\t");
+                    output.write("TLC :"+pcb.TLC+"\n\n\n");
+
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+                break;
+            }
             pcb.TTC++;
             if(pcb.TTC>pcb.TTL)
             {
                 System.out.println("Total time exceeded");
-                System.exit(0);
+                try {
+                    output.write("Program terminated abnormally\n");
+                    output.write("Time limit exceeded\n");
+                    try {
+                        output.write("IC :"+IC+"\t");
+                        output.write("IR :"+ new String(IR)+"\t");
+                        output.write("TTL :"+pcb.TTL+"\t");
+                        output.write("TLL :"+pcb.TLL+"\t");
+                        output.write("TTC :"+pcb.TTC+"\t");
+                        output.write("TLC :"+pcb.TLC+"\n\n\n");
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
             }
             System.out.println(new String(IR));
             if(IC==100)
@@ -172,13 +214,31 @@ public class OS {
                 ic=map(num);
                 if(ic==-1)
                 {
-                    System.out.println("Invalid Page Fault in PD");
-                    System.exit(0);
+                    System.out.println("Invalid page fault");
+                    try {
+                        output.write("Program terminated abnormally\n");
+                        output.write("Invalid page fault\n");
+                        try {
+                            output.write("IC :"+IC+"\t");
+                            output.write("IR :"+ new String(IR)+"\t");
+                            output.write("TTL :"+pcb.TTL+"\t");
+                            output.write("TLL :"+pcb.TLL+"\t");
+                            output.write("TTC :"+pcb.TTC+"\t");
+                            output.write("TLC :"+pcb.TLC+"\n\n\n");
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        return;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
                 }
                 SI=2;
                 masterMode();
             }
-            if(IR[0]=='L' && IR[1]=='R')
+            else if(IR[0]=='L' && IR[1]=='R')
             {
                 String line = new String(IR);
 
@@ -188,8 +248,15 @@ public class OS {
                 ic=map(num);
                 if(ic==-1)
                 {
-                    System.out.println("Invalid Page Fault in LR");
-                    System.exit(0);
+                    System.out.println("Invalid page fault");
+                    try {
+                        output.write("Program terminated abnormally\n");
+                        output.write("Invalid page fault");
+                        return;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
                 }
                 R[0]=memory[ic][0];
                 R[1]=memory[ic][1];
@@ -215,8 +282,15 @@ public class OS {
                 ic=map(num);
                 if(ic==-1)
                 {
-                    System.out.println("Invalid Page Fault in CR");
-                    System.exit(0);
+                    System.out.println("Invalid page fault");
+                    try {
+                        output.write("Program terminated abnormally\n");
+                        output.write("Invalid page fault");
+                        return;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
                 }
                 if(memory[ic][0]==R[0]&& memory[ic][1]==R[1]&& memory[ic][2]==R[2]&& memory[ic][3]==R[3])
                 {
@@ -235,7 +309,6 @@ public class OS {
                     String line = new String(IR);
                     int num=Integer.parseInt(line.substring(2));
                     IC=Integer.parseInt(line.substring(2));
-
                     T=0;
                 }
             }
@@ -243,8 +316,33 @@ public class OS {
             {
                 SI=3;
                 //System.out.println("Gel ka");
+                print_memory();
+                masterMode();
+
+                //init();
                 break;
-                //masterMode();
+            }
+            else
+            {
+                try {
+                    output.write("Program terminated abnormally\n");
+                    output.write("Opcode error detected\n");
+                    try {
+                        output.write("IC :"+IC+"\t");
+                        output.write("IR :"+ new String(IR)+"\t");
+                        output.write("TTL :"+pcb.TTL+"\t");
+                        output.write("TLL :"+pcb.TLL+"\t");
+                        output.write("TTC :"+pcb.TTC+"\t");
+                        output.write("TLC :"+pcb.TLC);
+                        output.write("\n\n\n");
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -287,12 +385,30 @@ public class OS {
         SI=0;
     }
 
-    private void Write() {
+    private int Write() {
         pcb.TLC++;
         if(pcb.TLC>pcb.TLL)
         {
                 System.out.println("Total line limit execeded");
-                System.exit(0);
+            try {
+                output.write("Program terminated abnormally\n");
+                output.write("LineLimit exceeded\n");
+                try {
+                    output.write("IC :"+IC+"\t");
+                    output.write("IR :"+ new String(IR)+"\t");
+                    output.write("TTL :"+pcb.TTL+"\t");
+                    output.write("TLL :"+pcb.TLL+"\t");
+                    output.write("TTC :"+pcb.TTC+"\t");
+                    output.write("TLC :"+pcb.TLC+"\n\n\n");
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return -1;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            //System.exit(0);
 
         }
         String line = new String(IR);
@@ -313,10 +429,10 @@ public class OS {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+return 1;
     }
 
-    private void Read() {
+    private int Read() {
         int flag=0;
         //IR[3]='0';
         String line = new String(IR);
@@ -333,7 +449,21 @@ public class OS {
             if(line.contains("$END"))
             {
                 System.out.println("Out of Data Card error");
-                System.exit(0);
+                output.write("Program terminated abnormally\n");
+                output.write("Out of Data card error\n");
+                try {
+                    output.write("IC :"+IC+"\t");
+                    output.write("IR :"+ new String(IR)+"\t");
+                    output.write("TTL :"+pcb.TTL+"\t");
+                    output.write("TLL :"+pcb.TLL+"\t");
+                    output.write("TTC :"+pcb.TTC+"\t");
+                    output.write("TLC :"+pcb.TLC+"\n\n\n");
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                return -1;
             }
 
 
@@ -348,6 +478,7 @@ public class OS {
             if(i%4==0)
                 num++;
         }
+        return 1;
     }
 
     public void init(){
